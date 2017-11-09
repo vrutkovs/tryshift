@@ -1,0 +1,7 @@
+aiohttp
+aiohttp_security
+aiopg[sa]
+aioredis
+aiohttp_session[aioredis]
+passlib
+aiohttp_jinja2
