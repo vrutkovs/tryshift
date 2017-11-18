@@ -1,0 +1,16 @@
+version: '2'
+
+services:
+    db:
+        build: db
+        hostname: db
+        environment:
+            - POSTGRES_DB=tryshift
+            - POSTGRES_USER=tryshift
+            - POSTGRES_PASSWORD=mypassword
+
+    tryshift:
+        build: tryshift
+        hostname: tryshift
+        ports:
+            - "8080:8080"

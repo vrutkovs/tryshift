@@ -1,0 +1,2 @@
+aiohttp==2.3.2
+aiohttp_security==0.1.2
