@@ -14,7 +14,7 @@ def require(permission):
         async def wrapped(self, request):
             has_perm = await permits(request, permission)
             if not has_perm:
-                message = 'User has no permission {}'.format(permission)
+                message = f'User has no "{permission}" permission'
                 raise web.HTTPForbidden(body=message.encode())
             return (await f(self, request))
         return wrapped
@@ -43,7 +43,7 @@ class Web(object):
         username = await authorized_userid(request)
         if username:
             template = self.index_template.format(
-                message='Hello, {username}!'.format(username=username))
+                message=f'Hello, {username}!')
         else:
             template = self.index_template.format(message='You need to login')
         response = web.Response(body=template.encode())

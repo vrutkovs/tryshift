@@ -4,5 +4,5 @@
   * [ ] Ansible to set up oc cluster up + the app
   * [ ] Implement quotas
   * [ ] Automated tests
-* [ ] Integration with Patreon, Drip, Flattr
+* [ ] Integration with Patreon, Drip, Flattr, GoFundMe?
 * [ ] Generic payments?
