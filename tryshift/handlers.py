@@ -8,6 +8,9 @@ from .db_auth import check_credentials
 
 from aiohttp_jinja2 import template
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 def require(permission):
     def wrapper(f):
@@ -43,26 +46,26 @@ class Web(object):
         return web.HTTPUnauthorized(
             body='Invalid username/password combination')
 
+    async def login_openshift(self, request):
+        response = web.HTTPFound('/')
+        form = await request.post()
+        logger.info(form)
+        login = form.get('login')
+        password = form.get('password')
+        db_engine = request.app.db_engine
+        if (await check_credentials(db_engine, login, password)):
+            await remember(request, response, login)
+            return response
+
     @require('public')
     @template('logout.jinja2')
     async def logout(self, request):
         await forget(request, response)
         return {'message': 'You have been logged out'}
 
-    @require('public')
-    @template('internal_page.jinja2')
-    async def internal_page(self, request):
-        return {'message': 'This page is visible for all registered users'}
-
-    @require('protected')
-    @template('protected.jinja2')
-    async def protected_page(self, request):
-        return {'message': 'You are on protected page'}
-
     def configure(self, app):
         router = app.router
         router.add_route('GET', '/', self.index, name='index')
+        router.add_route('GET', '/login', self.login_openshift, name='login_openshift')
         router.add_route('POST', '/login', self.login, name='login')
         router.add_route('GET', '/logout', self.logout, name='logout')
-        router.add_route('GET', '/public', self.internal_page, name='public')
-        router.add_route('GET', '/protected', self.protected_page, name='protected')
