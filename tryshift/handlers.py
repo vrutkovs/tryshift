@@ -34,9 +34,9 @@ class Web(object):
     async def index(self, request):
         username = await authorized_userid(request)
         if username:
-            raise HTTPFound(request.app.router['profile'].url_for())
+            raise web.HTTPFound(request.app.router['profile'].url_for())
 
-        return {}
+        return {'message': 'You need to login'}
 
     @template('login.jinja2')
     async def login(self, request):
@@ -84,7 +84,7 @@ class Web(object):
         return response
 
     @require('public')
-    @template('logout.jinja2')
+    @template('home.jinja2')
     async def logout(self, request):
         message = b'You have been logged out'
         response = web.Response(body=message)
