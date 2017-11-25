@@ -33,8 +33,10 @@ class Web(object):
     @template('home.jinja2')
     async def index(self, request):
         username = await authorized_userid(request)
-        message = f'Hello, {username}!' if username else 'You need to login'
-        return {'message': message}
+        if username:
+            raise HTTPFound(request.app.router['profile'].url_for())
+
+        return {}
 
     @template('login.jinja2')
     async def login(self, request):
@@ -89,9 +91,16 @@ class Web(object):
         await forget(request, response)
         return {'message': message.decode('utf-8')}
 
+    @require('public')
+    @template('profile.jinja2')
+    async def profile(self, request):
+        username = await authorized_userid(request)
+        return {'username': username}
+
     def configure(self, app):
         router = app.router
         router.add_route('GET', '/', self.index, name='index')
         router.add_route('GET', '/login', self.login_openshift, name='login_openshift')
         router.add_route('POST', '/login', self.login, name='login')
         router.add_route('GET', '/logout', self.logout, name='logout')
+        router.add_route('GET', '/profile', self.profile, name='profile')
