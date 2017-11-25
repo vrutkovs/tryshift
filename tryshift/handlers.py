@@ -8,6 +8,8 @@ from .db_auth import check_credentials
 
 from aiohttp_jinja2 import template
 
+from base64 import b64decode
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -47,15 +49,35 @@ class Web(object):
             body='Invalid username/password combination')
 
     async def login_openshift(self, request):
-        response = web.HTTPFound('/')
-        form = await request.post()
-        logger.info(form)
-        login = form.get('login')
-        password = form.get('password')
+        auth_headers = request.headers.getall('Authorization', [])
+        if auth_headers == []:
+            return web.HTTPUnauthorized(
+                body='No username/password specified')
+
+        auth_header = auth_headers[0]
+        if not auth_header.startswith('Basic '):
+            return web.HTTPUnauthorized(
+                body=f'Corrupted Authorization header: "{auth_header}"')
+
+        base64_string = auth_header.split(' ')[-1]
+        decoded_header = b64decode(base64_string).decode('utf-8')
+
+        if not ':' in decoded_header:
+            return web.HTTPUnauthorized(
+                body=f'Corrupted base64 string: "{decoded_header}"')
+
+        login, password = decoded_header.split(':')
+        logger.info(f"Using '{login}' and '{password}'")
+
         db_engine = request.app.db_engine
-        if (await check_credentials(db_engine, login, password)):
-            await remember(request, response, login)
-            return response
+        if not await check_credentials(db_engine, login, password):
+            return web.HTTPUnauthorized(
+                body=f'Incorrect username/password combination')
+
+        res = {'sub': login}
+        response = web.json_response(res)
+        await remember(request, response, login)
+        return response
 
     @require('public')
     @template('logout.jinja2')
