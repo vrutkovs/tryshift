@@ -82,8 +82,10 @@ class Web(object):
     @require('public')
     @template('logout.jinja2')
     async def logout(self, request):
+        message = b'You have been logged out'
+        response = web.Response(body=message)
         await forget(request, response)
-        return {'message': 'You have been logged out'}
+        return {'message': message.decode('utf-8')}
 
     def configure(self, app):
         router = app.router
