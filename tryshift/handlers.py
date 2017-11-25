@@ -6,7 +6,7 @@ from aiohttp_security import remember, forget, authorized_userid, permits
 
 from .db_auth import check_credentials
 
-from aiohttp_jinja2 import template
+from aiohttp_jinja2 import template, render_string
 
 from base64 import b64decode
 
@@ -20,8 +20,10 @@ def require(permission):
         async def wrapped(self, request):
             has_perm = await permits(request, permission)
             if not has_perm:
-                message = f'User has no "{permission}" permission'
-                raise web.HTTPForbidden(body=message)
+                message = render_string('no_permission.jinja2',
+                                        request,
+                                        {'permission': permission})
+                raise web.HTTPForbidden(body=message, content_type='text/html')
             return (await f(self, request))
         return wrapped
     return wrapper
